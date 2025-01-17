@@ -26,7 +26,10 @@ public class RunBenchmarkCall implements Call<RunBenchmarkCallInput, String> {
             OptimiseApi optimiseApi = new OptimiseApi(clientFactory.getClient(input.getClusterUrl()));
             RunBenchmarkRequest request = new RunBenchmarkRequest()
                     .benchmarkFilePath(input.getBenchmarkFilePath())
-                    .nodeName(input.getNodeName());
+                    .nodeName(input.getNodeName())
+                    .iterations(input.getIterations())
+                    .profile(input.getProfile())
+                    .values(input.getValues());
 
             return success("Benchmark was started successfully with id " + optimiseApi.runBenchmark(request));
         } catch (ApiException e) {

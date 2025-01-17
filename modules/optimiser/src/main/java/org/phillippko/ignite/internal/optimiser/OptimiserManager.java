@@ -15,7 +15,6 @@ import org.apache.ignite.internal.metastorage.MetaStorageManager;
 import org.apache.ignite.internal.network.MessagingService;
 import org.apache.ignite.internal.network.NetworkMessage;
 import org.apache.ignite.internal.network.TopologyService;
-import org.apache.ignite.internal.util.ByteUtils;
 import org.apache.ignite.network.ClusterNode;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -66,7 +65,13 @@ public class OptimiserManager implements IgniteComponent {
                 .thenApply(ignored -> id);
     }
 
-    public CompletableFuture<UUID> runBenchmark(@Nullable String nodeName, String benchmarkFilePath) {
+    public CompletableFuture<UUID> runBenchmark(
+            @Nullable String nodeName,
+            @Nullable String benchmarkFilePath,
+            int iterations,
+            @Nullable Long values,
+            String profile
+    ) {
         LOG.info("Running a benchmark");
 
         UUID id = UUID.randomUUID();
@@ -76,6 +81,9 @@ public class OptimiserManager implements IgniteComponent {
         NetworkMessage message = messageFactory.runBenchmarkMessage()
                 .benchmarkFileName(benchmarkFilePath)
                 .id(id)
+                .iterations(iterations)
+                .values(values)
+                .profile(profile)
                 .build();
 
         return messagingService.send(targetNode, message)
@@ -128,11 +136,11 @@ public class OptimiserManager implements IgniteComponent {
                 });
     }
 
-    private void runBenchmarkInternal(UUID id, String benchmarkFilePath) {
+    private void runBenchmarkInternal(UUID id, @Nullable String benchmarkFilePath, int iterations, @Nullable Long values, String profile) {
         ByteArray key = ByteArray.fromString(RESULT_PREFIX + id);
 
         metastorageManager.put(key, "Benchmark STARTED".getBytes())
-                .thenApplyAsync((v) -> benchmarkRunner.runBenchmark(benchmarkFilePath), threadPool)
+                .thenApplyAsync((v) -> benchmarkRunner.runBenchmark(benchmarkFilePath, iterations, values, profile), threadPool)
                 .thenAccept((result) -> metastorageManager.put(key, stringToBytes(result)));
     }
 
@@ -154,9 +162,13 @@ public class OptimiserManager implements IgniteComponent {
         if (message instanceof RunBenchmarkMessage) {
             RunBenchmarkMessage runBenchmarkMessage = (RunBenchmarkMessage) message;
 
-            UUID id = runBenchmarkMessage.id();
-
-            runBenchmarkInternal(id, runBenchmarkMessage.benchmarkFileName());
+            runBenchmarkInternal(
+                    runBenchmarkMessage.id(),
+                    runBenchmarkMessage.benchmarkFileName(),
+                    runBenchmarkMessage.iterations(),
+                    runBenchmarkMessage.values(),
+                    runBenchmarkMessage.profile()
+            );
         } else if (message instanceof OptimiseMessage) {
             OptimiseMessage optimiseMessage = (OptimiseMessage) message;
 

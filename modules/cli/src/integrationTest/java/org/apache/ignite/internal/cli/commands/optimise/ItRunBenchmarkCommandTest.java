@@ -13,4 +13,12 @@ public class ItRunBenchmarkCommandTest extends CliIntegrationTest {
         assertErrOutputIsEmpty();
         assertOutputContains("Benchmark was started successfully with id ");
     }
+
+    @Test
+    public void testRunBenchmarkWithValues() {
+        execute("optimise", "runBenchmark", CLUSTER_URL_OPTION, NODE_URL, "--values", "100");
+
+        assertErrOutputIsEmpty();
+        assertOutputContains("Benchmark was started successfully with id ");
+    }
 }

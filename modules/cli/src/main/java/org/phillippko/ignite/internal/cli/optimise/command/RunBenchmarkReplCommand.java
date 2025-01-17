@@ -32,7 +32,7 @@ public class RunBenchmarkReplCommand extends BaseCommand implements Runnable {
     private RunBenchmarkCall call;
 
     @Parameters(
-            defaultValue = "defaultBenchmark.sql",
+            arity = "0..1",
             index = "0",
             description = "Path to the file containing SQL queries to run during benchmark."
     )
@@ -40,6 +40,15 @@ public class RunBenchmarkReplCommand extends BaseCommand implements Runnable {
 
     @Option(names = {NODE_NAME_OPTION, NODE_NAME_OPTION_SHORT}, description = NODE_NAME_OPTION_DESC)
     private String nodeName;
+
+    @Option(names = "--iterations", description = "Number of iterations to run the benchmark.", defaultValue = "1")
+    private int iterations;
+
+    @Option(names = "--values", description = "Number of values to run the benchmark.")
+    private Long values;
+
+    @Option(names = "--profile", description = "Storage profile to use for the benchmark.", defaultValue = "default")
+    private String profile;
 
     @Inject
     private ConnectToClusterQuestion question;
@@ -59,6 +68,9 @@ public class RunBenchmarkReplCommand extends BaseCommand implements Runnable {
                 .setClusterUrl(url)
                 .setBenchmarkFilePath(benchmarkFilePath)
                 .setNodeName(nodeName)
+                .setIterations(iterations)
+                .setValues(values)
+                .setProfile(profile)
                 .build();
     }
 }

@@ -19,7 +19,13 @@ public class OptimiseController implements OptimiseApi, ResourceHolder {
 
     @Override
     public CompletableFuture<UUID> runBenchmark(RunBenchmarkRequest runBenchmarkRequest) {
-        return optimiserManager.runBenchmark(runBenchmarkRequest.nodeName(), runBenchmarkRequest.benchmarkFilePath());
+        return optimiserManager.runBenchmark(
+                runBenchmarkRequest.nodeName(),
+                runBenchmarkRequest.benchmarkFilePath(),
+                runBenchmarkRequest.iterations(),
+                runBenchmarkRequest.values(),
+                runBenchmarkRequest.profile()
+        );
     }
 
     @Override
