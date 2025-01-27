@@ -17,19 +17,14 @@
 
 package org.apache.ignite.internal.benchmark;
 
-import static java.nio.file.StandardOpenOption.TRUNCATE_EXISTING;
-import static java.nio.file.StandardOpenOption.WRITE;
-
+import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.ignite.internal.lang.IgniteSystemProperties;
-import org.apache.ignite.internal.util.ByteUtils;
 import org.apache.ignite.table.KeyValueView;
 import org.apache.ignite.table.Tuple;
 import org.openjdk.jmh.annotations.Benchmark;
@@ -44,7 +39,6 @@ import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.annotations.Threads;
 import org.openjdk.jmh.annotations.Warmup;
-import org.openjdk.jmh.results.RunResult;
 import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.RunnerException;
 import org.openjdk.jmh.runner.options.Options;
@@ -56,18 +50,18 @@ import org.openjdk.jmh.runner.options.OptionsBuilder;
 @State(Scope.Benchmark)
 @Fork(1)
 @Threads(1)
-@Warmup(iterations = 10, time = 2)
-@Measurement(iterations = 20, time = 2)
-@BenchmarkMode(Mode.Throughput)
-@OutputTimeUnit(TimeUnit.SECONDS)
+@Warmup(iterations = 2, time = 2)
+@Measurement(iterations = 5, time = 2)
+@BenchmarkMode(Mode.AverageTime)
+@OutputTimeUnit(TimeUnit.MICROSECONDS)
 public class UpsertKvBenchmark extends AbstractMultiNodeBenchmark {
     private final Tuple tuple = Tuple.create();
 
     private static KeyValueView<Tuple, Tuple> kvView;
 
-    private int batch = 1;
+    private int batch = 10000;
 
-    @Param({"false, true"})
+    @Param({"false", "true"})
     private boolean fsync;
 
     private int partitionCount = 8;
@@ -131,9 +125,12 @@ public class UpsertKvBenchmark extends AbstractMultiNodeBenchmark {
                 .param("fsync", args[1])
                 .build();
 
-        for (RunResult runResult : new Runner(opt).run()) {
-            Files.write(Path.of(args[0]), ByteUtils.toBytes(runResult.getPrimaryResult().getScore()), WRITE, TRUNCATE_EXISTING);
-        }
+        int averageTime = (int) new Runner(opt).run().stream().findFirst().get().getPrimaryResult().getScore();
+
+        var fileWriter = new FileWriter(args[0]);
+
+        fileWriter.write(averageTime + "");
+        fileWriter.close();
     }
 
     @Override
