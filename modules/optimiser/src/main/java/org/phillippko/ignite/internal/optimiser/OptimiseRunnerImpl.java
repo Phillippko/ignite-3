@@ -120,7 +120,6 @@ public class OptimiseRunnerImpl implements OptimiseRunner {
             }
         }
 
-
         // OpenTuner не поддерживается в Windows
         if (!System.getProperty("os.name").toLowerCase().contains("windows")) {
             String opentunerIssues = getIssuesWithOpentuner(writeIntensive);

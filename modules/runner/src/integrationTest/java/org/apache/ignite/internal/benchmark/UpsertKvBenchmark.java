@@ -17,12 +17,19 @@
 
 package org.apache.ignite.internal.benchmark;
 
+import static java.nio.file.StandardOpenOption.TRUNCATE_EXISTING;
+import static java.nio.file.StandardOpenOption.WRITE;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.ignite.internal.lang.IgniteSystemProperties;
+import org.apache.ignite.internal.util.ByteUtils;
 import org.apache.ignite.table.KeyValueView;
 import org.apache.ignite.table.Tuple;
 import org.openjdk.jmh.annotations.Benchmark;
@@ -37,6 +44,7 @@ import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.annotations.Threads;
 import org.openjdk.jmh.annotations.Warmup;
+import org.openjdk.jmh.results.RunResult;
 import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.RunnerException;
 import org.openjdk.jmh.runner.options.Options;
@@ -57,14 +65,12 @@ public class UpsertKvBenchmark extends AbstractMultiNodeBenchmark {
 
     private static KeyValueView<Tuple, Tuple> kvView;
 
-    @Param({"1"})
-    private int batch;
+    private int batch = 1;
 
-    @Param({"false"})
+    @Param({"false, true"})
     private boolean fsync;
 
-    @Param({"8"})
-    private int partitionCount;
+    private int partitionCount = 8;
 
     private static final AtomicInteger counter = new AtomicInteger();
 
@@ -119,14 +125,15 @@ public class UpsertKvBenchmark extends AbstractMultiNodeBenchmark {
     /**
      * Benchmark's entry point.
      */
-    public static void main(String[] args) throws RunnerException {
+    public static void main(String[] args) throws RunnerException, IOException {
         Options opt = new OptionsBuilder()
                 .include(".*" + UpsertKvBenchmark.class.getSimpleName() + ".*")
-                // .jvmArgsAppend("-Djmh.executor=VIRTUAL")
-                // .addProfiler(JavaFlightRecorderProfiler.class, "configName=profile.jfc")
+                .param("fsync", args[1])
                 .build();
 
-        new Runner(opt).run();
+        for (RunResult runResult : new Runner(opt).run()) {
+            Files.write(Path.of(args[0]), ByteUtils.toBytes(runResult.getPrimaryResult().getScore()), WRITE, TRUNCATE_EXISTING);
+        }
     }
 
     @Override
