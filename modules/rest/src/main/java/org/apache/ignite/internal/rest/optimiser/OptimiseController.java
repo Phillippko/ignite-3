@@ -30,7 +30,11 @@ public class OptimiseController implements OptimiseApi, ResourceHolder {
 
     @Override
     public CompletableFuture<UUID> optimise(RunOptimisationRequest runOptimisationRequest) {
-        return optimiserManager.optimise(runOptimisationRequest.nodeName(), runOptimisationRequest.writeIntensive());
+        return optimiserManager.optimise(
+                runOptimisationRequest.nodeName(),
+                runOptimisationRequest.writeIntensive(),
+                runOptimisationRequest.tunerTimeout()
+        );
     }
 
     @Override

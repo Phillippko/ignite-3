@@ -6,11 +6,13 @@ public class RunOptimiseCallInput implements CallInput {
     private final String clusterUrl;
     private final String nodeName;
     private final boolean writeIntensive;
+    private final int tunerTimeout;
 
-    public RunOptimiseCallInput(String clusterUrl, String nodeName, boolean writeIntensive) {
+    public RunOptimiseCallInput(String clusterUrl, String nodeName, boolean writeIntensive, int tunerTimeout) {
         this.clusterUrl = clusterUrl;
         this.nodeName = nodeName;
         this.writeIntensive = writeIntensive;
+        this.tunerTimeout = tunerTimeout;
     }
 
     public static RunOptimiseCallInputBuilder builder() {
@@ -19,6 +21,10 @@ public class RunOptimiseCallInput implements CallInput {
 
     public String getClusterUrl() {
         return clusterUrl;
+    }
+
+    public int getTunerTimeout() {
+        return tunerTimeout;
     }
 
     public boolean getWriteIntensive() {
@@ -33,6 +39,7 @@ public class RunOptimiseCallInput implements CallInput {
         private String clusterUrl;
         private String nodeName;
         private boolean writeIntensive;
+        private int tunerTimeout;
 
         public RunOptimiseCallInputBuilder setClusterUrl(String clusterUrl) {
             this.clusterUrl = clusterUrl;
@@ -52,8 +59,14 @@ public class RunOptimiseCallInput implements CallInput {
             return this;
         }
 
+        public RunOptimiseCallInputBuilder setTunerTimeout(int tunerTimeout) {
+            this.tunerTimeout = tunerTimeout;
+
+            return this;
+        }
+
         public RunOptimiseCallInput build() {
-            return new RunOptimiseCallInput(clusterUrl, nodeName, writeIntensive);
+            return new RunOptimiseCallInput(clusterUrl, nodeName, writeIntensive, tunerTimeout);
         }
     }
 }

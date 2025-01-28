@@ -8,5 +8,7 @@ import org.apache.ignite.internal.network.annotations.Transferable;
 interface OptimiseMessage extends NetworkMessage {
     boolean writeIntensive();
 
+    int tunerTimeout();
+
     UUID id();
 }

@@ -25,11 +25,9 @@ import org.apache.ignite.internal.storage.rocksdb.configuration.schema.RocksDbPr
 public class OptimiseRunnerImpl implements OptimiseRunner {
     private static final IgniteLogger LOG = Loggers.forClass(OptimiseRunnerImpl.class);
 
-    private static final String OPENTUNER_COMMAND = "/usr/bin/apachetuner --writeIntensive=";
+    private static final String OPENTUNER_COMMAND = "C:/IdeaProjects/apachetuner -timeToRun=%d";
 
-    private static final Path OPENTUNER_RESULT_PATH = Path.of("/tmp/opentuner_result.txt");
-
-    private static final long OPENTUNER_TIMEOUT_SECONDS = 100;
+    private static final Path OPENTUNER_RESULT_PATH = Path.of("C:/tmp/opentuner");
 
     private final ConfigurationRegistry clusterConfigurationRegistry;
     private final ConfigurationRegistry nodeConfigurationRegistry;
@@ -40,7 +38,7 @@ public class OptimiseRunnerImpl implements OptimiseRunner {
     }
 
     @Override
-    public String getIssues(boolean writeIntensive) {
+    public String getIssues(boolean writeIntensive, int tunerTimeout) {
         LOG.info("Running optimisation");
 
         List<String> issues = new ArrayList<>();
@@ -120,15 +118,10 @@ public class OptimiseRunnerImpl implements OptimiseRunner {
             }
         }
 
-        // OpenTuner не поддерживается в Windows
-        if (!System.getProperty("os.name").toLowerCase().contains("windows")) {
-            String opentunerIssues = getIssuesWithOpentuner(writeIntensive);
+        String opentunerIssues = getIssuesWithOpentuner(tunerTimeout);
 
-            if (!opentunerIssues.isEmpty()) {
-                issues.add(opentunerIssues);
-            }
-        } else {
-            issues.add("Can't run opentuner on Windows");
+        if (!opentunerIssues.isEmpty()) {
+            issues.add(opentunerIssues);
         }
 
         String result = String.join("; ", issues);
@@ -138,13 +131,16 @@ public class OptimiseRunnerImpl implements OptimiseRunner {
         return result;
     }
 
-    private static String getIssuesWithOpentuner(boolean writeIntensive) {
+    private static String getIssuesWithOpentuner(int tunerTimeout) {
         try {
-            ProcessBuilder builder = new ProcessBuilder(OPENTUNER_COMMAND + writeIntensive);
+            ProcessBuilder builder = new ProcessBuilder(String.format(OPENTUNER_COMMAND, tunerTimeout));
 
-            builder.start().waitFor(OPENTUNER_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+            if (builder.start().waitFor(tunerTimeout + 20, TimeUnit.SECONDS)) {
+                return Files.readString(OPENTUNER_RESULT_PATH);
+            } else {
+                return "Opentuner didn't finish in time";
+            }
 
-            return Files.readString(OPENTUNER_RESULT_PATH);
         } catch (IOException | InterruptedException e) {
             LOG.error("Couldn't run opentuner: " + OPENTUNER_COMMAND, e);
 

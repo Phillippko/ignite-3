@@ -35,8 +35,8 @@ public class RunBenchmarkCommand extends BaseCommand implements Callable<Integer
     )
     private String benchmarkFilePath;
 
-    @Option(names = {NODE_NAME_OPTION, NODE_NAME_OPTION_SHORT}, description = NODE_NAME_OPTION_DESC)
-    private String nodeName;
+    @Mixin
+    private NodeNameMixin nodeName;
 
     @Option(names = "--iterations", description = "Number of iterations to run the benchmark.", defaultValue = "1")
     private int iterations;
@@ -59,7 +59,7 @@ public class RunBenchmarkCommand extends BaseCommand implements Callable<Integer
         return RunBenchmarkCallInput.builder()
                 .setClusterUrl(clusterUrlMixin.getClusterUrl())
                 .setBenchmarkFilePath(benchmarkFilePath)
-                .setNodeName(nodeName)
+                .setNodeName(nodeName.nodeName())
                 .setIterations(iterations)
                 .setValues(values)
                 .setProfile(profile)

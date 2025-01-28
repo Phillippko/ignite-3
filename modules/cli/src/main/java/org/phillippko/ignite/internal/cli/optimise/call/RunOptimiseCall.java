@@ -27,6 +27,7 @@ public class RunOptimiseCall implements Call<RunOptimiseCallInput, String> {
 
             RunOptimisationRequest request = new RunOptimisationRequest()
                     .writeIntensive(input.getWriteIntensive())
+                    .tunerTimeout(input.getTunerTimeout())
                     .nodeName(input.getNodeName());
 
             return success("Optimisation was started successfully with id " + optimiseApi.optimise(request));

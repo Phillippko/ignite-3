@@ -323,6 +323,8 @@ public enum Options {
 
         public static final String WRITE_INTENSIVE_OPTION = "--write-intensive";
 
+        public static final String TUNER_TIMEOUT_OPTION = "--tuner-timeout";
+
         public static final String ID_OPTION_DESC = "ID of the target optimisation or benchmark";
     }
 }

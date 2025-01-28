@@ -49,7 +49,7 @@ public class OptimiserManager implements IgniteComponent {
         this.metastorageManager = metastorageManager;
     }
 
-    public CompletableFuture<UUID> optimise(@Nullable String nodeName, boolean writeIntensive) {
+    public CompletableFuture<UUID> optimise(@Nullable String nodeName, boolean writeIntensive, int tunerTimeout) {
         LOG.info("Running optimisation");
 
         UUID id = UUID.randomUUID();
@@ -59,6 +59,7 @@ public class OptimiserManager implements IgniteComponent {
         OptimiseMessage message = messageFactory.optimiseMessage()
                 .writeIntensive(writeIntensive)
                 .id(id)
+                .tunerTimeout(tunerTimeout)
                 .build();
 
         return messagingService.send(targetNode, message)
@@ -121,11 +122,11 @@ public class OptimiserManager implements IgniteComponent {
         return nullCompletedFuture();
     }
 
-    private void runOptimiseInternal(UUID id, boolean writeIntensive) {
+    private void runOptimiseInternal(UUID id, boolean writeIntensive, int tunerTimeout) {
         ByteArray key = ByteArray.fromString(RESULT_PREFIX + id);
 
         metastorageManager.put(key, "STARTED".getBytes())
-                .thenApplyAsync((v) -> optimiseRunner.getIssues(writeIntensive), threadPool)
+                .thenApplyAsync((v) -> optimiseRunner.getIssues(writeIntensive, tunerTimeout), threadPool)
                 .thenAccept((issues) -> metastorageManager.put(key, stringToBytes(issues)))
                 .exceptionally(e -> {
                     LOG.error("Error while optimising: ", e);
@@ -172,7 +173,7 @@ public class OptimiserManager implements IgniteComponent {
         } else if (message instanceof OptimiseMessage) {
             OptimiseMessage optimiseMessage = (OptimiseMessage) message;
 
-            runOptimiseInternal(optimiseMessage.id(), optimiseMessage.writeIntensive());
+            runOptimiseInternal(optimiseMessage.id(), optimiseMessage.writeIntensive(), optimiseMessage.tunerTimeout());
         }
     }
 }

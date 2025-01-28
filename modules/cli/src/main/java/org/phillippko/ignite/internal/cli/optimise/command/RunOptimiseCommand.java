@@ -25,11 +25,11 @@ public class RunOptimiseCommand extends BaseCommand implements Callable<Integer>
     @Inject
     private RunOptimiseCall call;
 
-    @Option(names = WRITE_INTENSIVE_OPTION, description = "If target configuration should be prepared for write-intensive use-cases")
-    private boolean writeIntensive;
+    @Mixin
+    private OptimiseMixin optimiseMixin;
 
-    @Option(names = {NODE_NAME_OPTION, NODE_NAME_OPTION_SHORT}, description = NODE_NAME_OPTION_DESC)
-    private String nodeName;
+    @Mixin
+    private NodeNameMixin nodeName;
 
     @Override
     public Integer call() {
@@ -42,8 +42,9 @@ public class RunOptimiseCommand extends BaseCommand implements Callable<Integer>
     private RunOptimiseCallInput buildCallInput() {
         return RunOptimiseCallInput.builder()
                 .setClusterUrl(clusterUrlMixin.getClusterUrl())
-                .setWriteIntensive(writeIntensive)
-                .setNodeName(nodeName)
+                .setWriteIntensive(optimiseMixin.writeIntensive())
+                .setTunerTimeout(optimiseMixin.tunerTimeout())
+                .setNodeName(nodeName.nodeName())
                 .build();
     }
 }

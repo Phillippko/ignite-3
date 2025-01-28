@@ -15,19 +15,29 @@ public class RunOptimisationRequest {
     @Schema(description = "Name of the node to run optimisation on.")
     private final @Nullable String nodeName;
 
+    @Schema(description = "How long should OpenTuner run in milliseconds.")
+    private final int tunerTimeout;
+
     /** Constructor. */
     @JsonCreator
     public RunOptimisationRequest(
             @JsonProperty("nodeName") @Nullable String nodeName,
-            @JsonProperty("writeIntensive") boolean writeIntensive
+            @JsonProperty("writeIntensive") boolean writeIntensive,
+            @JsonProperty("tunerTimeout") int tunerTimeout
     ) {
         this.writeIntensive = writeIntensive;
         this.nodeName = nodeName;
+        this.tunerTimeout = tunerTimeout;
     }
 
     @JsonGetter
     public boolean writeIntensive() {
         return writeIntensive;
+    }
+
+    @JsonGetter
+    public int tunerTimeout() {
+        return tunerTimeout;
     }
 
     @JsonGetter
